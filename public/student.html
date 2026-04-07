@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Classroom | Mark Attendance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(140deg, #f2efe8, #e6f0e9);
+      margin: 0;
+      padding: 20px 14px;
+    }
+    .card {
+      background: #fffdf8;
+      max-width: 520px;
+      margin: 20px auto;
+      border-radius: 12px;
+      border: 1px solid #ddd4c8;
+      box-shadow: 0 12px 22px rgba(14, 23, 17, 0.08);
+      padding: 18px;
+    }
+    h2 {
+      text-align: center;
+      color: #1f1f1f;
+      margin: 8px 0 14px;
+    }
+    input {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #0a3d62;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+    #message {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 15px;
+      white-space: pre-line;
+    }
+    #gpsWarn {
+      text-align: center;
+      color: #945900;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    #session-info, #profile {
+      text-align: center;
+      color: #4e4a43;
+      font-size: 0.95rem;
+      margin: 8px 0;
+    }
+    .hidden { display: none; }
+    .link-btn {
+      display: inline-block;
+      margin-top: 10px;
+      text-decoration: none;
+      background: #1b5e20;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Smart Classroom Attendance</h2>
+    <div id="session-info"></div>
+    <div id="profile"></div>
+
+    <form id="login-form" class="hidden">
+      <input type="text" id="student_id" placeholder="Student ID (S001)" required />
+      <input type="password" id="student_password" placeholder="Password (s001123)" required />
+      <button type="submit">Login as Student</button>
+    </form>
+
+    <form id="attendance-form" class="hidden">
+      <button type="submit" id="mark-btn" disabled>Mark Present with GPS</button>
+      <a class="link-btn" href="/student_dashboard.html">Open My Attendance Dashboard</a>
+    </form>
+
+    <p id="gpsWarn">Please enable GPS/location and refresh this page.</p>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const SERVER_URL = window.location.origin;
+    const params = new URLSearchParams(window.location.search);
+    const session_id = params.get("session");
+    document.getElementById("session-info").innerText = `Session ID: ${session_id || "Unknown"}`;
+
+    const loginForm = document.getElementById("login-form");
+    const form = document.getElementById("attendance-form");
+    const msg = document.getElementById("message");
+    const markBtn = document.getElementById("mark-btn");
+    const gpsWarn = document.getElementById("gpsWarn");
+    const profile = document.getElementById("profile");
+    let currentLocation = null;
+    let student = null;
+
+    function fetchLocation() {
+      if (!navigator.geolocation) {
+        msg.innerText = "GPS not supported by this device.";
+        return;
+      }
+
+      msg.innerText = "Getting your location...";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          currentLocation = pos.coords;
+          gpsWarn.style.display = "none";
+          markBtn.disabled = !(student && session_id);
+          msg.style.color = "green";
+          msg.innerText = "Location detected successfully.";
+        },
+        () => {
+          gpsWarn.style.display = "block";
+          msg.style.color = "orange";
+          msg.innerText = "Please enable location and refresh the page.";
+        },
+        { enableHighAccuracy: true, timeout: 20000 }
+      );
+    }
+
+    async function checkStudentLogin() {
+      const res = await fetch("/api/auth/me");
+      const data = await res.json();
+      if (data.user && data.user.role === "student") {
+        student = data.user;
+        profile.innerText = `Logged in: ${student.studentName} (${student.studentId})`;
+        form.classList.remove("hidden");
+        loginForm.classList.add("hidden");
+        markBtn.disabled = !(currentLocation && session_id);
+      } else {
+        student = null;
+        form.classList.add("hidden");
+        loginForm.classList.remove("hidden");
+        profile.innerText = "Student login required.";
+      }
+    }
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.innerText = "Signing in...";
+      try {
+        const res = await fetch("/api/auth/student/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            student_id: document.getElementById("student_id").value.trim(),
+            password: document.getElementById("student_password").value
+          })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Login failed");
+        msg.style.color = "green";
+        msg.innerText = "Login successful.";
+        await checkStudentLogin();
+      } catch (err) {
+        msg.style.color = "red";
+        msg.innerText = err.message;
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      msg.style.color = "black";
+      msg.innerText = "Marking attendance...";
+
+      if (!session_id) {
+        msg.style.color = "red";
+        msg.innerText = "Invalid session QR code.";
+        return;
+      }
+      if (!currentLocation) {
+        msg.style.color = "orange";
+        msg.innerText = "Waiting for GPS signal...";
+        return;
+      }
+      if (!student) {
+        msg.style.color = "orange";
+        msg.innerText = "Please login as student first.";
+        return;
+      }
+
+      const payload = {
+        session_id,
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude
+      };
+
+      try {
+        const res = await fetch(`${SERVER_URL}/api/mark_with_gps`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.ok) {
+          msg.style.color = "green";
+          msg.innerText = "Attendance marked successfully. You are PRESENT.";
+          markBtn.disabled = true;
+        } else {
+          msg.style.color = "red";
+          msg.innerText = "Error: " + (data.error || "Unable to mark attendance.");
+        }
+
+      } catch (err) {
+        msg.style.color = "red";
+        msg.innerText = 
+          "Network error. Please check server and ngrok status.";
+      }
+    });
+
+    fetchLocation();
+    checkStudentLogin();
+  </script>
+</body>
+</html>

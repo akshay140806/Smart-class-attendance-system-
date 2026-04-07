@@ -1,0 +1,31 @@
+{
+  "name": "javac",
+  "version": "1.0.0",
+  "description": "",
+  "main": "attendance_server.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "csv-stringify": "^6.6.0",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^17.2.3",
+    "exceljs": "^4.4.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "path": "^0.12.7",
+    "pdfkit": "^0.18.0",
+    "sqlite3": "^5.1.7",
+    "twilio": "^5.10.4"
+  }
+}

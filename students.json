@@ -1,0 +1,7 @@
+{
+  "students": [
+    { "id": "S001", "name": "AKSHAY", "phone": "+918122134566" },
+    { "id": "S002", "name": "VASIKARAN", "phone": "+916385840461" },
+    { "id": "S003", "name": "Rahul Sharma", "phone": "+919911223344" }
+  ]
+}

@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Smart Classroom | Web Control Panel</title>
+  <style>
+    :root {
+      --bg: #f2efe8;
+      --panel: #fffdf8;
+      --text: #1f1f1f;
+      --muted: #6d665c;
+      --brand: #1b5e20;
+      --brand-2: #0a3d62;
+      --danger: #9d1c1c;
+      --line: #ddd4c8;
+      --shadow: 0 10px 24px rgba(16, 26, 19, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 85% -10%, rgba(10,61,98,0.16), transparent 35%),
+        radial-gradient(circle at -10% 100%, rgba(27,94,32,0.16), transparent 40%),
+        var(--bg);
+      font-family: "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+    }
+    .hero {
+      background: linear-gradient(120deg, #0a3d62, #1b5e20);
+      color: #fff;
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      letter-spacing: 0.2px;
+    }
+    .hero p {
+      margin: 8px 0 0;
+      color: rgba(255,255,255,0.9);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 16px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .stack { display: grid; gap: 10px; }
+    label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #cfc5b8;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 150px;
+    }
+    button {
+      border: none;
+      background: #1b5e20;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: #0a3d62; }
+    .btn-danger { background: var(--danger); }
+    .btn-muted { background: #6d665c; }
+    .btn-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px dashed #8ca7b7;
+      background: #f4fbff;
+      color: #0a3d62;
+      font-weight: 600;
+    }
+    .qr-wrap {
+      display: grid;
+      place-items: center;
+      background: #fff;
+      border: 1px dashed #c4b9aa;
+      border-radius: 12px;
+      min-height: 250px;
+      padding: 10px;
+      overflow: hidden;
+    }
+    .qr-wrap img { max-width: 100%; height: auto; }
+    .small { color: var(--muted); font-size: 0.86rem; }
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      max-height: 280px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      background: #fff;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ebe2d8;
+      text-align: left;
+      white-space: nowrap;
+    }
+    th { background: #f6f2eb; }
+    .log {
+      min-height: 180px;
+      background: #131b15;
+      color: #b8f3c0;
+      border: none;
+    }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+      .btn-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Easwari Engineering College - Staff Control Panel</h1>
+      <p>Start sessions, show student QR, mark attendance manually, inspect records, and export CSV.</p>
+      <p>
+        Logged in as: <strong id="staffName">-</strong> <strong id="superAdminBadge"></strong>
+        | Allowed subjects: <strong id="staffSubjects">-</strong>
+        <button id="logoutBtn" class="btn-danger" style="max-width:150px; margin-left:10px;">Logout</button>
+        <button id="resetDataBtn" class="btn-danger" style="max-width:200px; margin-left:10px;">Clear Old Data</button>
+      </p>
+    </section>
+
+    <section class="grid">
+      <div class="panel stack">
+        <h2>Session Control</h2>
+        <div class="row">
+          <div>
+            <label for="subject">Subject</label>
+            <input id="subject" list="subjectList" placeholder="OOSE / OS / DSE / DBMS / PSSM-MATHS / CD" />
+            <datalist id="subjectList">
+              <option value="OOSE"></option>
+              <option value="OS"></option>
+              <option value="DSE"></option>
+              <option value="DBMS"></option>
+              <option value="PSSM-MATHS"></option>
+              <option value="CD"></option>
+            </datalist>
+          </div>
+          <div>
+            <label for="period">Period</label>
+            <input id="period" type="number" min="1" value="1" />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="startBtn">Start Session</button>
+          </div>
+        </div>
+
+        <div id="health" class="status">Checking server status...</div>
+        <div class="small">Active Session: <strong id="activeSid">None</strong></div>
+        <div class="small">Student URL: <a id="studentUrl" href="#" target="_blank">-</a></div>
+
+        <div class="btn-row">
+          <button id="endBtn" class="btn-danger">End Session</button>
+          <button id="exportBtn" class="btn-secondary">Export CSV</button>
+          <button id="clearQrBtn" class="btn-muted">Clear QR</button>
+          <button id="refreshBtn" class="btn-secondary">Refresh Sessions</button>
+        </div>
+
+        <div class="qr-wrap">
+          <img id="qrImg" alt="Session QR" />
+          <div id="qrPlaceholder" class="small">QR will appear when session starts</div>
+        </div>
+      </div>
+
+      <div class="panel stack">
+        <h2>Manual Mark</h2>
+        <div class="row">
+          <div>
+            <label for="manualSid">Session ID</label>
+            <input id="manualSid" placeholder="Auto-filled from active session" />
+          </div>
+          <div>
+            <label for="studentId">Student ID</label>
+            <input id="studentId" placeholder="S001" />
+          </div>
+          <div>
+            <label for="status">Status</label>
+            <select id="status">
+              <option>Present</option>
+              <option>Absent</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="studentName">Student Name (optional)</label>
+          <input id="studentName" placeholder="Student name" />
+        </div>
+        <button id="manualBtn">Submit Manual Mark</button>
+        <label for="logArea">Activity Log</label>
+        <textarea id="logArea" class="log" readonly></textarea>
+      </div>
+    </section>
+
+    <section class="panel stack">
+      <h2>Sessions</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Session ID</th>
+              <th>Subject</th>
+              <th>Date</th>
+              <th>Started</th>
+              <th>Ended</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sessionsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel stack">
+      <h2>Session Attendance Viewer</h2>
+      <div class="small" id="viewerCaption">Select a session to view attendance.</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Student ID</th>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Latitude</th>
+              <th>Longitude</th>
+              <th>Marked At</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel stack">
+        <h2>Credential Management</h2>
+        <div class="row">
+          <div>
+            <label for="newStaffUser">Staff Username</label>
+            <input id="newStaffUser" placeholder="staff_cn" />
+          </div>
+          <div>
+            <label for="newStaffName">Display Name</label>
+            <input id="newStaffName" placeholder="CN Staff" />
+          </div>
+          <div>
+            <label for="newStaffSubjects">Subjects (comma-separated)</label>
+            <input id="newStaffSubjects" placeholder="CN,OS" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="newStaffPassword">Staff Password</label>
+            <input id="newStaffPassword" placeholder="strong-password" />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="createStaffBtn">Create Staff</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Username</th><th>Display Name</th><th>Subjects</th></tr>
+            </thead>
+            <tbody id="staffUsersBody"></tbody>
+          </table>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="newStudentId">Student ID</label>
+            <input id="newStudentId" placeholder="S050" />
+          </div>
+          <div>
+            <label for="newStudentName">Student Name</label>
+            <input id="newStudentName" placeholder="Student Name" />
+          </div>
+          <div>
+            <label for="newStudentPhone">Parent Phone (optional)</label>
+            <input id="newStudentPhone" placeholder="+91XXXXXXXXXX" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="newStudentPassword">Student Password</label>
+            <input id="newStudentPassword" placeholder="custom-password" />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="createStudentBtn">Create/Reset Student</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Student ID</th><th>Name</th><th>Parent Phone</th><th>Reports</th></tr>
+            </thead>
+            <tbody id="studentUsersBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel stack">
+        <h2>Low Attendance Alerts</h2>
+        <div class="row">
+          <div>
+            <label for="thresholdInput">Threshold (%)</label>
+            <input id="thresholdInput" type="number" min="1" max="100" value="75" />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="loadAlertsBtn" class="btn-secondary">Load Alerts</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Subject</th>
+                <th>Attendance %</th>
+                <th>Present/Taken</th>
+              </tr>
+            </thead>
+            <tbody id="alertsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    let currentSessionId = null;
+    let currentStudentUrl = null;
+    let staffUser = null;
+
+    const qs = (id) => document.getElementById(id);
+    const logArea = qs("logArea");
+
+    const html = (s) => String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+
+    const fmtTs = (ts) => ts ? new Date(ts * 1000).toLocaleString() : "-";
+
+    async function fetchJson(url, options) {
+      const res = await fetch(url, options);
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        location.href = "/login.html";
+        throw new Error("Login required");
+      }
+      if (!res.ok) throw new Error(data.error || "Request failed");
+      return data;
+    }
+
+    async function ensureStaffLogin() {
+      const data = await fetchJson("/api/auth/me");
+      if (!data.user || data.user.role !== "staff") {
+        location.href = "/login.html";
+        return;
+      }
+      staffUser = data.user;
+      qs("staffName").textContent = staffUser.displayName || staffUser.username;
+      qs("superAdminBadge").textContent = staffUser.isSuperAdmin ? "(SUPER ADMIN)" : "";
+      const subjectList = Array.isArray(staffUser.subjects) ? staffUser.subjects : [];
+      qs("staffSubjects").textContent = subjectList.length ? subjectList.join(", ") : "All";
+
+      if (subjectList.length) {
+        const subject = qs("subject");
+        const list = qs("subjectList");
+        list.innerHTML = "";
+        subjectList.forEach((s) => {
+          const option = document.createElement("option");
+          option.value = s;
+          list.appendChild(option);
+        });
+        subject.value = subjectList[0] || "";
+      }
+
+      try {
+        const subjectData = await fetchJson("/api/subjects");
+        const list = qs("subjectList");
+        list.innerHTML = "";
+        (subjectData.subjects || []).forEach((s) => {
+          const option = document.createElement("option");
+          option.value = s;
+          list.appendChild(option);
+        });
+        if (!qs("subject").value && subjectData.subjects?.length) {
+          qs("subject").value = subjectData.subjects[0];
+        }
+      } catch (e) {
+        appendLog(`Subject list load error: ${e.message}`);
+      }
+
+      const canManageStaff = !!staffUser.isSuperAdmin;
+      const credentialSection = qs("newStaffUser")?.closest("section") || null;
+      if (!canManageStaff) {
+        const staffFormRoot = qs("newStaffUser")?.closest("div.panel");
+        if (staffFormRoot) {
+          staffFormRoot.querySelectorAll("#newStaffUser, #newStaffName, #newStaffSubjects, #newStaffPassword, #createStaffBtn, #staffUsersBody").forEach((el) => {
+            if (el) el.setAttribute("disabled", "disabled");
+          });
+        }
+        qs("resetDataBtn").style.display = "none";
+      }
+
+      await Promise.all([
+        canManageStaff ? loadStaffUsers() : Promise.resolve(),
+        loadStudentUsers(),
+        loadLowAttendanceAlerts(),
+      ]);
+    }
+
+    async function loadStaffUsers() {
+      const tbody = qs("staffUsersBody");
+      if (!staffUser?.isSuperAdmin) {
+        tbody.innerHTML = '<tr><td colspan="3">Only super-admin can view/manage staff credentials.</td></tr>';
+        return;
+      }
+      const data = await fetchJson("/api/admin/staff-users");
+      tbody.innerHTML = "";
+      (data.rows || []).forEach((r) => {
+        const tr = document.createElement("tr");
+        const badge = r.is_superadmin ? " (super-admin)" : "";
+        tr.innerHTML = `<td>${html(r.username)}${badge}</td><td>${html(r.display_name || "-")}</td><td>${html(r.subjects)}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadStudentUsers() {
+      const tbody = qs("studentUsersBody");
+      const data = await fetchJson("/api/admin/student-users");
+      tbody.innerHTML = "";
+      (data.rows || []).forEach((r) => {
+        const sid = encodeURIComponent(r.student_id);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${html(r.student_id)}</td>
+          <td>${html(r.student_name || "-")}</td>
+          <td>${html(r.parent_phone || "-")}</td>
+          <td>
+            <a href="/api/export/student/${sid}.xlsx" target="_blank">XLSX</a> |
+            <a href="/api/export/student/${sid}.pdf" target="_blank">PDF</a>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function createStaffUser() {
+      if (!staffUser?.isSuperAdmin) throw new Error("Only super-admin can create staff users");
+      const username = qs("newStaffUser").value.trim();
+      const display_name = qs("newStaffName").value.trim();
+      const subjects = qs("newStaffSubjects").value.trim();
+      const password = qs("newStaffPassword").value;
+      await fetchJson("/api/admin/staff-users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, display_name, subjects, password }),
+      });
+      appendLog(`Staff user created: ${username}`);
+      await loadStaffUsers();
+    }
+
+    async function createOrResetStudentUser() {
+      const student_id = qs("newStudentId").value.trim();
+      const student_name = qs("newStudentName").value.trim();
+      const parent_phone = qs("newStudentPhone").value.trim();
+      const password = qs("newStudentPassword").value;
+      await fetchJson("/api/admin/student-users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ student_id, student_name, parent_phone, password }),
+      });
+      appendLog(`Student credential saved: ${student_id}`);
+      await loadStudentUsers();
+    }
+
+    async function loadLowAttendanceAlerts() {
+      const tbody = qs("alertsBody");
+      const threshold = Number(qs("thresholdInput").value || 75);
+      const data = await fetchJson(`/api/alerts/low-attendance?threshold=${encodeURIComponent(threshold)}`);
+      tbody.innerHTML = "";
+      if (!data.items || !data.items.length) {
+        tbody.innerHTML = '<tr><td colspan="5">No low-attendance alerts at this threshold.</td></tr>';
+        return;
+      }
+      data.items.forEach((r) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${html(r.studentId)}</td>
+          <td>${html(r.studentName)}</td>
+          <td>${html(r.subject)}</td>
+          <td>${html(r.attendancePercent)}%</td>
+          <td>${html(r.present)}/${html(r.taken)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function appendLog(message) {
+      const stamp = new Date().toLocaleTimeString();
+      logArea.value += `[${stamp}] ${message}\n`;
+      logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    function setActiveSession(sid, studentUrl) {
+      currentSessionId = sid || null;
+      currentStudentUrl = studentUrl || null;
+
+      qs("activeSid").textContent = currentSessionId || "None";
+      const studentUrlEl = qs("studentUrl");
+      if (currentStudentUrl) {
+        studentUrlEl.textContent = currentStudentUrl;
+        studentUrlEl.href = currentStudentUrl;
+      } else {
+        studentUrlEl.textContent = "-";
+        studentUrlEl.removeAttribute("href");
+      }
+
+      qs("manualSid").value = currentSessionId || "";
+    }
+
+    function showQr(url) {
+      const img = qs("qrImg");
+      const placeholder = qs("qrPlaceholder");
+      if (!url) {
+        img.removeAttribute("src");
+        placeholder.style.display = "block";
+        return;
+      }
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=380x380&data=${encodeURIComponent(url)}`;
+      placeholder.style.display = "none";
+    }
+
+    async function checkHealth() {
+      try {
+        const data = await fetchJson("/api/health");
+        qs("health").textContent = data.ok ? "Server is online." : "Server responded unexpectedly.";
+      } catch (err) {
+        qs("health").textContent = "Cannot reach server. Check node server and ngrok.";
+      }
+    }
+
+    async function startSession() {
+      const subject = qs("subject").value.trim();
+      const period = Number(qs("period").value || 1);
+      if (!subject) {
+        appendLog("Please enter/select a subject.");
+        return;
+      }
+      try {
+        const data = await fetchJson("/api/session/start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ label: subject, period })
+        });
+
+        setActiveSession(data.sessionId, data.studentUrl);
+        showQr(data.studentUrl);
+        appendLog(`Session started: ${data.sessionId} (${subject})`);
+        appendLog(`Student URL: ${data.studentUrl}`);
+        await loadSessions();
+      } catch (err) {
+        appendLog(`Start session error: ${err.message}`);
+      }
+    }
+
+    async function endSession(sessionId = currentSessionId) {
+      if (!sessionId) {
+        appendLog("No active session to end.");
+        return;
+      }
+      try {
+        const data = await fetchJson("/api/session/end", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId })
+        });
+
+        appendLog(`Session ended: ${sessionId}. Absentees notified: ${data.absentees}`);
+        if (sessionId === currentSessionId) {
+          setActiveSession(null, null);
+          showQr(null);
+        }
+        await loadSessions();
+      } catch (err) {
+        appendLog(`End session error: ${err.message}`);
+      }
+    }
+
+    function exportCsv(sessionId = currentSessionId) {
+      if (!sessionId) {
+        appendLog("Export skipped: no session selected.");
+        return;
+      }
+      appendLog(`Exporting CSV for ${sessionId}`);
+      window.location.href = `/api/export/session/${encodeURIComponent(sessionId)}`;
+    }
+
+    async function manualMark() {
+      const sessionId = qs("manualSid").value.trim();
+      const studentId = qs("studentId").value.trim();
+      const studentName = qs("studentName").value.trim();
+      const status = qs("status").value;
+
+      if (!sessionId || !studentId) {
+        appendLog("Manual mark needs session ID and student ID.");
+        return;
+      }
+
+      try {
+        const data = await fetchJson("/api/manual/mark", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId, studentId, studentName, status })
+        });
+
+        appendLog(`Manual mark: ${studentId} -> ${status}`);
+        if (status === "Absent") {
+          appendLog("Twilio SMS will be sent if parent phone exists.");
+        }
+        await viewSession(sessionId);
+      } catch (err) {
+        appendLog(`Manual mark error: ${err.message}`);
+      }
+    }
+
+    async function loadSessions() {
+      const tbody = qs("sessionsBody");
+      try {
+        const rows = await fetchJson("/api/sessions");
+        tbody.innerHTML = "";
+
+        if (!Array.isArray(rows) || rows.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6">No sessions yet.</td></tr>';
+          return;
+        }
+
+        rows.forEach((r) => {
+          const tr = document.createElement("tr");
+          const sid = html(r.id);
+          tr.innerHTML = `
+            <td>${sid}</td>
+            <td>${html(r.label)}</td>
+            <td>${html(r.date)}</td>
+            <td>${html(fmtTs(r.started_at))}</td>
+            <td>${html(fmtTs(r.ended_at))}</td>
+            <td>
+              <button data-act="use" data-sid="${sid}" class="btn-secondary">Use</button>
+              <button data-act="view" data-sid="${sid}" class="btn-muted">View</button>
+              <button data-act="export" data-sid="${sid}" class="btn-secondary">CSV</button>
+              <button data-act="end" data-sid="${sid}" class="btn-danger">End</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6">Failed to load sessions.</td></tr>';
+        appendLog(`Load sessions error: ${err.message}`);
+      }
+    }
+
+    async function viewSession(sessionId) {
+      const tbody = qs("attendanceBody");
+      qs("viewerCaption").textContent = `Showing attendance for session ${sessionId}`;
+
+      try {
+        const rows = await fetchJson(`/api/attendance/session/${encodeURIComponent(sessionId)}`);
+
+        tbody.innerHTML = "";
+        if (!Array.isArray(rows) || rows.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7">No attendance rows for this session.</td></tr>';
+          return;
+        }
+
+        rows.forEach((r) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${html(r.student_id)}</td>
+            <td>${html(r.student_name)}</td>
+            <td>${html(r.status)}</td>
+            <td>${html(r.date)}</td>
+            <td>${html(r.latitude ?? "-")}</td>
+            <td>${html(r.longitude ?? "-")}</td>
+            <td>${html(fmtTs(r.marked_ts))}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        appendLog(`Loaded ${rows.length} attendance row(s) for ${sessionId}`);
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="7">Failed to load attendance.</td></tr>';
+        appendLog(`View session error: ${err.message}`);
+      }
+    }
+
+    function useSession(sessionId) {
+      const link = `${window.location.origin}/student.html?session=${encodeURIComponent(sessionId)}`;
+      setActiveSession(sessionId, link);
+      showQr(link);
+      appendLog(`Session selected: ${sessionId}`);
+    }
+
+    qs("startBtn").addEventListener("click", startSession);
+    qs("endBtn").addEventListener("click", () => endSession());
+    qs("exportBtn").addEventListener("click", () => exportCsv());
+    qs("manualBtn").addEventListener("click", manualMark);
+    qs("clearQrBtn").addEventListener("click", () => showQr(null));
+    qs("refreshBtn").addEventListener("click", loadSessions);
+    qs("createStaffBtn").addEventListener("click", async () => {
+      try {
+        await createStaffUser();
+      } catch (e) {
+        appendLog(`Create staff error: ${e.message}`);
+      }
+    });
+    qs("createStudentBtn").addEventListener("click", async () => {
+      try {
+        await createOrResetStudentUser();
+      } catch (e) {
+        appendLog(`Create/reset student error: ${e.message}`);
+      }
+    });
+    qs("loadAlertsBtn").addEventListener("click", async () => {
+      try {
+        await loadLowAttendanceAlerts();
+      } catch (e) {
+        appendLog(`Low attendance alert load error: ${e.message}`);
+      }
+    });
+    qs("logoutBtn").addEventListener("click", async () => {
+      await fetch("/api/auth/logout", { method: "POST" });
+      location.href = "/login.html";
+    });
+    qs("resetDataBtn").addEventListener("click", async () => {
+      if (!confirm("This will clear old sessions, attendance, and credentials. Continue?")) return;
+      try {
+        const data = await fetchJson("/api/admin/reset-old-data", { method: "POST" });
+        appendLog(data.message || "Old data cleared.");
+        await Promise.all([loadStaffUsers(), loadStudentUsers(), loadSessions(), loadLowAttendanceAlerts()]);
+      } catch (e) {
+        appendLog(`Data reset error: ${e.message}`);
+      }
+    });
+
+    qs("sessionsBody").addEventListener("click", (ev) => {
+      const btn = ev.target.closest("button[data-act]");
+      if (!btn) return;
+      const act = btn.getAttribute("data-act");
+      const sid = btn.getAttribute("data-sid");
+      if (!sid) return;
+
+      if (act === "use") useSession(sid);
+      if (act === "view") viewSession(sid);
+      if (act === "export") exportCsv(sid);
+      if (act === "end") endSession(sid);
+    });
+
+    (async () => {
+      await ensureStaffLogin();
+      checkHealth();
+      loadSessions();
+      setInterval(loadSessions, 15000);
+      appendLog("Web panel ready.");
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smart Classroom</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(140deg, #f3efe7, #dbe7df);
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: #1f1f1f;
+    }
+    .card {
+      width: min(92vw, 640px);
+      background: #fffef9;
+      border: 1px solid #ddd3c7;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 12px 24px rgba(24, 39, 28, 0.08);
+    }
+    h1 { margin: 0 0 8px; }
+    p { margin: 0 0 18px; color: #5d584f; }
+    .links { display: grid; gap: 10px; }
+    a {
+      text-decoration: none;
+      background: #1b5e20;
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    a.alt { background: #0a3d62; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Smart Classroom Attendance</h1>
+    <p>Web version with staff subject login and student attendance dashboard.</p>
+    <div class="links">
+      <a href="/login.html">Open Login Portal</a>
+      <a class="alt" href="/admin.html">Open Staff Control Panel</a>
+      <a class="alt" href="/student_dashboard.html">Open Student Dashboard</a>
+    </div>
+  </main>
+</body>
+</html>

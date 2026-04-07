@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Easwari Engineering College | Login Portal</title>
+  <style>
+    :root {
+      --bg: #efece4;
+      --panel: #fffefb;
+      --line: #d6cebf;
+      --staff: #0a3d62;
+      --student: #1b5e20;
+      --text: #1f1f1f;
+      --muted: #655e53;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(10,61,98,0.16), transparent 36%),
+        radial-gradient(circle at 100% 100%, rgba(27,94,32,0.16), transparent 36%),
+        var(--bg);
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .page {
+      width: min(1080px, 94vw);
+      margin: 28px auto;
+      display: grid;
+      gap: 18px;
+    }
+    .topbar {
+      background: linear-gradient(120deg, #0a3d62, #1b5e20);
+      color: #fff;
+      border-radius: 18px;
+      padding: 20px 22px;
+      box-shadow: 0 12px 24px rgba(17, 26, 24, 0.12);
+    }
+    .topbar h1 { margin: 0; font-size: clamp(1.4rem, 3vw, 2rem); }
+    .topbar p { margin: 8px 0 0; color: rgba(255,255,255,0.92); }
+    .layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .overview,
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 10px 22px rgba(20, 25, 28, 0.08);
+    }
+    .overview h2 { margin: 0 0 10px; font-size: 1.2rem; }
+    .overview p { margin: 0 0 10px; color: var(--muted); }
+    .pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .pill {
+      border: 1px solid #c7beaf;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 0.85rem;
+      color: #3e3a33;
+      background: #faf7f0;
+    }
+    .card h2 { margin: 0 0 12px; font-size: 1.2rem; }
+    .role-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .role-tag.staff { background: var(--staff); }
+    .role-tag.student { background: var(--student); }
+    label { display: block; margin: 8px 0 6px; font-size: 0.9rem; }
+    input, button {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #cbc1b4;
+      padding: 10px 12px;
+      font: inherit;
+    }
+    button {
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      margin-top: 10px;
+      font-weight: 700;
+    }
+    .staff-btn { background: var(--staff); }
+    .student-btn { background: var(--student); }
+    .demo {
+      margin-top: 10px;
+      border-top: 1px dashed #cfc6b9;
+      padding-top: 10px;
+      font-size: 0.9rem;
+      color: #4f4a43;
+      white-space: pre-line;
+    }
+    .top-links {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .top-links a {
+      text-decoration: none;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.45);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+    .msg { min-height: 20px; font-size: 0.92rem; font-weight: 600; }
+    .hidden { display: none; }
+    .back-link {
+      display: inline-block;
+      margin-top: 8px;
+      color: #114264;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="topbar">
+      <h1>Easwari Engineering College</h1>
+      <p>Department Smart Classroom Attendance System</p>
+      <div class="top-links">
+        <a href="/app">Portal Home</a>
+        <a href="/student_dashboard.html">Student Dashboard</a>
+        <a href="/admin.html">Staff Panel</a>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="overview">
+        <h2>Campus Login Gateway</h2>
+        <p>Choose your role from the portal home and sign in to continue.</p>
+        <p>Configured subjects:</p>
+        <div class="pill-row">
+          <span class="pill">OOSE</span>
+          <span class="pill">OS</span>
+          <span class="pill">DSE</span>
+          <span class="pill">DBMS</span>
+          <span class="pill">PSSM-MATHS</span>
+          <span class="pill">CD</span>
+        </div>
+        <a class="back-link" href="/app">Back to Student / Staff Selection</a>
+      </aside>
+
+      <section id="staffCard" class="card hidden">
+      <span class="role-tag staff">STAFF</span>
+      <h2>Staff Login</h2>
+      <label for="staffUser">Username</label>
+      <input id="staffUser" placeholder="staff_oose" />
+      <label for="staffPass">Password</label>
+      <input id="staffPass" type="password" placeholder="oose123" />
+      <button id="staffBtn" class="staff-btn">Login as Staff</button>
+      <div id="staffMsg" class="msg"></div>
+      <div class="demo">Demo staff credentials:
+superadmin / super123
+staff_oose / oose123
+staff_os / os123
+staff_dse / dse123
+staff_dbms / dbms123
+staff_pssm / pssm123
+staff_cd / cd123</div>
+      </section>
+
+      <section id="studentCard" class="card hidden">
+      <span class="role-tag student">STUDENT</span>
+      <h2>Student Login</h2>
+      <label for="studentId">Student ID</label>
+      <input id="studentId" placeholder="S001" />
+      <label for="studentPass">Password</label>
+      <input id="studentPass" type="password" placeholder="s001123" />
+      <button id="studentBtn" class="student-btn">Login as Student</button>
+      <div id="studentMsg" class="msg"></div>
+      <div class="demo">Student password format (auto-seeded):
+lowercase(student_id) + 123
+Example: S001 -> s001123</div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    async function postJson(url, body) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || "Login failed");
+      return data;
+    }
+
+    document.getElementById("staffBtn").addEventListener("click", async () => {
+      const msg = document.getElementById("staffMsg");
+      msg.textContent = "Signing in...";
+      try {
+        await postJson("/api/auth/staff/login", {
+          username: document.getElementById("staffUser").value.trim(),
+          password: document.getElementById("staffPass").value
+        });
+        location.href = "/admin.html";
+      } catch (e) {
+        msg.textContent = e.message;
+      }
+    });
+
+    document.getElementById("studentBtn").addEventListener("click", async () => {
+      const msg = document.getElementById("studentMsg");
+      msg.textContent = "Signing in...";
+      try {
+        await postJson("/api/auth/student/login", {
+          student_id: document.getElementById("studentId").value.trim(),
+          password: document.getElementById("studentPass").value
+        });
+        location.href = "/student_dashboard.html";
+      } catch (e) {
+        msg.textContent = e.message;
+      }
+    });
+
+    (function applyRoleView() {
+      const role = new URLSearchParams(window.location.search).get("role");
+      const staffCard = document.getElementById("staffCard");
+      const studentCard = document.getElementById("studentCard");
+      if (role === "staff") {
+        staffCard.classList.remove("hidden");
+        studentCard.classList.add("hidden");
+        document.getElementById("staffUser").focus();
+      } else if (role === "student") {
+        studentCard.classList.remove("hidden");
+        staffCard.classList.add("hidden");
+        document.getElementById("studentId").focus();
+      } else {
+        window.location.href = "/app";
+      }
+    })();
+  </script>
+</body>
+</html>
